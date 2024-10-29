@@ -8,10 +8,10 @@ from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp()
 
-# Obter a string de conexão do Blob Storage
+# Obter strg de conexão do Blob
 connection_string = os.getenv("BLOB_STORAGE_CONNECTION_STRING")
 
-# Configurar o Time Trigger para execução em um horário específico
+# Configurar Time Trigger pra execução em um horário determinado
 @app.timer_trigger(schedule="0 40-59 18 * * 1-5", arg_name="mTimer", run_on_startup=False, use_monitor=False)
 def TimeTriggerFunction(mTimer: func.TimerRequest) -> None:
     if mTimer.past_due:
@@ -29,7 +29,7 @@ def TimeTriggerFunction(mTimer: func.TimerRequest) -> None:
         logging.error(f"Failed to retrieve data: {e}")
         return
 
-    # 2. Verificar se o dado já foi coletado hoje
+    # 2. Verificar se o dado já foi coletado no dia da consulta
     current_date = datetime.datetime.now().date()
     data_date_str = json_data.get('date')
     
@@ -39,7 +39,7 @@ def TimeTriggerFunction(mTimer: func.TimerRequest) -> None:
             logging.info("Data já coletada hoje.")
             return
 
-    # 3. Salvar JSON no Blob Storage
+    # 3. Salvar o JSON no Blob Storage
     try:
         blob_service_client = BlobServiceClient.from_connection_string(connection_string)
         container_client = blob_service_client.get_container_client("desafio-azure")
@@ -54,7 +54,7 @@ def TimeTriggerFunction(mTimer: func.TimerRequest) -> None:
     except Exception as e:
         logging.error(f"Failed to upload JSON to Blob Storage: {e}")
 
-# Função HTTP Trigger para salvar taxa em XML
+# Função HTTP Trigger para salvar taxa XML
 @app.route(route="HttpRequestFunction", auth_level=func.AuthLevel.FUNCTION)
 def HttpRequestFunction(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
